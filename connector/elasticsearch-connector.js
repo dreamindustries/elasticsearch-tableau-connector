@@ -437,7 +437,9 @@ var elasticsearchConnector = (function () {
             "Average": "avg",
             "Sum": "sum",
             "Stats" : "stats",
-            "Extended Stats": "extended_stats"
+            "Unique count": "cardinality",
+            "Extended Stats": "extended_stats",
+            "Percentile": "percentiles"
         };
 
         aggsQuery.aggregations = {};
@@ -1019,6 +1021,7 @@ var elasticsearchConnector = (function () {
                     field.indexOf("metric_avg_") == 0 ||
                     field.indexOf("metric_min_") == 0 ||
                     field.indexOf("metric_max_") == 0 ||
+                    field.indexOf("metric_cardinality_") == 0 ||
                     field.indexOf("metric_count_") == 0) {
 
                     console.log(field + " = " + agg[key].value)
@@ -1048,6 +1051,16 @@ var elasticsearchConnector = (function () {
                     currentRow[toSafeTableauFieldName("metric_std_deviation_" + fieldName)] = agg[key].std_deviation;
                     currentRow[toSafeTableauFieldName("metric_std_deviation_bounds_lower_" + fieldName)] = agg[key].std_deviation_bounds.lower;
                     currentRow[toSafeTableauFieldName("metric_std_deviation_bounds_upper_" + fieldName)] = agg[key].std_deviation_bounds.upper;
+                }
+                if (field.indexOf("metric_percentiles_") == 0) {
+                    var fieldName = field.substring("metric_percentiles_".length)
+                    console.log(field + " = " + JSON.stringify(agg[key]));
+
+                    for (var perc in agg[key].values) {
+                        var p = perc.substring(0, perc.length - 2);
+                        currentRow[toSafeTableauFieldName("metric_percentiles_" + p + "_" + fieldName)] = agg[key].values[perc]
+                    }
+                    console.log(currentRow);
                 }
             }
 
@@ -1205,6 +1218,15 @@ var elasticsearchConnector = (function () {
                     });
                     elasticsearchAggsMap[key] = "metric_max_" + field;
                 }
+                if (aggInfo.cardinality) {
+                    field = aggInfo.cardinality.field;
+
+                    accumulatedFields.push({
+                        name: "metric_cardinality_" + field,
+                        type: "float"
+                    });
+                    elasticsearchAggsMap[key] = "metric_cardinality_" + field;
+                }
                 if (aggInfo.stats) {
                     field = aggInfo.stats.field;
 
@@ -1274,6 +1296,21 @@ var elasticsearchConnector = (function () {
                         type: "float"
                     });
                     elasticsearchAggsMap[key] = "metric_extended_stats_" + field;
+                }
+                if (aggInfo.percentiles) {
+                    field = aggInfo.percentiles.field;
+
+                    var percs = ["1","5","25","50","75","95","99"];
+
+                    for (var i = 0; i < percs.length; i++) {
+                        var p = percs[i];
+                        accumulatedFields.push({
+                            name: "metric_percentiles_" + p + "_" + field,
+                            type: "float"
+                        });
+                    }
+                    
+                    elasticsearchAggsMap[key] = "metric_percentiles_" + field;
                 }
             }
 

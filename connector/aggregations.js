@@ -126,7 +126,8 @@ var aggregations = (function () {
         self.getMetrics = function(){
             return self.metrics();
         };
-        self.metricTypes = ko.observableArray([ "Count", "Sum", "Average", "Min", "Max", "Stats", "Extended Stats"]);
+        self.metricTypes = ko.observableArray([ "Count", "Sum", "Average", "Min", "Max", "Stats", 
+            "Unique count", "Extended Stats", "Percentile"]);
 
         self.buckets = ko.observableArray([]);
         self.getBuckets = function(){
@@ -167,13 +168,7 @@ var aggregations = (function () {
                     self.fields.push({ name: propertyPrefix + key, type: val.type });
 
                     // If this isnt a numeric field then we are done
-                    if (val.type != "long" && val.type != "double" && val.type != "int") {
-  
-                    }
-                    else{
-                       // Add to list of numeric only fields for metric field options
-                       self.metricFields.push({ name: propertyPrefix + key, type: val.type });
-                    }                    
+                    self.metricFields.push({ name: propertyPrefix + key, type: val.type });                  
 
                     addChildFields(propertyPrefix + key, val);
                 });
@@ -238,11 +233,6 @@ var aggregations = (function () {
                         }
                         else {
                             self.fields.push({ name: key, type: val.type });
-
-                            // IF this isnt a numeric field then we are done
-                            if (val.type != "long" && val.type != "double" && val.type != "int") {
-                                return;
-                            }
 
                             // Add to list of numeric only fields for metric field options
                             self.metricFields.push({ name: key, type: val.type });

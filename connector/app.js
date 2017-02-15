@@ -9,10 +9,10 @@ var app = (function () {
         self.useSyncClientWorkaround = ko.observable(false);
         self.username = ko.observable();
         self.password = ko.observable();
-        self.elasticsearchUrl = ko.observable();
+        self.elasticsearchUrl = ko.observable('http://aes1.zvq.me:9200');
         self.elasticsearchIndex = ko.observable();
 
-        self.resultMode = ko.observable("search");
+        self.resultMode = ko.observable("aggregation");
 
         self.useCustomQuery = ko.observable(false);
         self.searchCustomQuery = ko.observable();
