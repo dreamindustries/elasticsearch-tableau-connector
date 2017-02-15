@@ -555,6 +555,10 @@ var elasticsearchConnector = (function () {
                     field: metric.field
                 };
 
+                if (metricTypeMap[metric.type] == "cardinality") {
+                    currentAg[metricName][metricTypeMap[metric.type]]["precision_threshold"] = 40000;
+                }
+
                 metricNum++;
             });
         }
